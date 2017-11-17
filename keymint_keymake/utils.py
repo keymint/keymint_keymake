@@ -20,8 +20,9 @@ from xml.dom import minidom
 def tidy_xml(element):
     subiter = ElementTree.ElementTree(element).getiterator()
     for x in subiter:
-        if x.text:
-            x.text = x.text.strip()
+        if len(x):
+            if x.text:
+                x.text = x.text.strip()
         if x.tail:
             x.tail = x.tail.strip()
     return element
