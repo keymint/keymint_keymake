@@ -102,8 +102,8 @@ class DDSCertificateHelper:
     def get_ca(self, context, issuer_name):
         # TODO conceder getting ca password from context
         issuer_name = os.path.normpath(issuer_name)
-        ca_key_path = os.path.join(context.private_space, issuer_name + '.pem')
-        ca_cert_path = os.path.join(context.public_space, issuer_name + '.pem')
+        ca_key_path = os.path.join(context.private_space, issuer_name + '.key.pem')
+        ca_cert_path = os.path.join(context.public_space, issuer_name + '.cert.pem')
 
         with open(ca_key_path, 'rb') as f:
             ca_key = serialization.load_pem_private_key(
