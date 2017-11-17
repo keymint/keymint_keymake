@@ -141,10 +141,10 @@ class DDSCertificateHelper:
         dds_cert = cert_builder.sign(ca_key, hash_algorithm, default_backend())
         return dds_cert
 
-    def serialize(self, context, cert, dds_certificate):
-        dds_certificate_bytes = dds_certificate.public_bytes(
+    def serialize(self, context, cert, dds_cert):
+        dds_cert_bytes = dds_cert.public_bytes(
                 encoding=serialization.Encoding.PEM)
-        return dds_certificate_bytes
+        return dds_cert_bytes
 
 
 class AsymmetricHelper:
