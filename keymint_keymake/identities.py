@@ -78,10 +78,9 @@ class DDSCertificateHelper:
         for key, value in dn_dict.items():
             if key in self._attribute_dict:
                 attribute = x509.NameAttribute(self._attribute_dict[key], value)
-                attributes.append(attribute)
             else:
                 attribute = x509.NameAttribute(self._NAMES_OID[key], value)
-                attributes.append(attribute)
+            attributes.append(attribute)
         return attributes
 
 
