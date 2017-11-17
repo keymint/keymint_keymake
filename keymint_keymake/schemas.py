@@ -22,7 +22,7 @@ IS_WINDOWS = os.name == 'nt'
 
 def get_dds_schema_path(name):
     return pkg_resources.resource_filename(
-        package_or_requirement='keymint_package',
+        package_or_requirement='keymint_keymake',
         resource_name=os.path.join('schema', 'dds', name))
 
 
