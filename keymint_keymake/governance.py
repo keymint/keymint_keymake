@@ -19,9 +19,10 @@ from copy import deepcopy
 import xmlschema
 
 from .exceptions import InvalidGovernanceXML
+from .identities import get_ca
 from .namespace import DDSNamespaceHelper
 from .schemas import get_dds_schema_path
-
+from .smime.sign import sign_data
 
 from .utils import pretty_xml, tidy_xml
 
@@ -118,7 +119,7 @@ class DDSGovernanceHelper(GovernanceHelper):
         dds_root = tidy_xml(dds_root)
         return pretty_xml(dds_root)
 
-    def test(self, dds_root_str, filename):
+    def test(self, context, dds_root_str, filename):
         governance_xsd_path = get_dds_schema_path('governance.xsd')
         governance_schema = xmlschema.XMLSchema(governance_xsd_path)
         if not governance_schema.is_valid(dds_root_str):
@@ -130,3 +131,9 @@ class DDSGovernanceHelper(GovernanceHelper):
                 else:
                     msg = 'The governance file contains invalid XML:\n'
                 raise InvalidGovernanceXML(msg + str(ex))
+
+    def install(self, context, dds_governance_bytes):
+        issuer_name = context.package_manifest.governance_ca.text
+        ca_key, ca_cert = get_ca(context=context, issuer_name=issuer_name)
+        dds_governance_bytes_singed = sign_data(dds_governance_bytes, ca_key, ca_cert)
+        return dds_governance_bytes_singed

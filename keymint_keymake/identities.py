@@ -48,6 +48,24 @@ def parse_dn(dn):
     return dict(parts)
 
 
+def get_ca(context, issuer_name):
+    # TODO conceder getting ca password from context
+    issuer_name = os.path.normpath(issuer_name)
+    ca_key_path = os.path.join(context.private_space, issuer_name + '.key.pem')
+    ca_cert_path = os.path.join(context.public_space, issuer_name + '.cert.pem')
+
+    with open(ca_key_path, 'rb') as f:
+        ca_key = serialization.load_pem_private_key(
+            f.read(),
+            password=None,
+            backend=default_backend())
+
+    with open(ca_cert_path, 'rb') as f:
+        ca_cert = x509.load_pem_x509_certificate(f.read(), default_backend())
+
+    return ca_key, ca_cert
+
+
 class CertificateHelper:
     """Help build certificate into artifacts."""
 
@@ -98,22 +116,6 @@ class DDSCertificateHelper:
             ).sign(dds_key, hash_algorithm(), default_backend())
         return dds_csr
 
-    def get_ca(self, context, issuer_name):
-        # TODO conceder getting ca password from context
-        issuer_name = os.path.normpath(issuer_name)
-        ca_key_path = os.path.join(context.private_space, issuer_name + '.key.pem')
-        ca_cert_path = os.path.join(context.public_space, issuer_name + '.cert.pem')
-
-        with open(ca_key_path, 'rb') as f:
-            ca_key = serialization.load_pem_private_key(
-                f.read(),
-                password=None,
-                backend=default_backend())
-
-        with open(ca_cert_path, 'rb') as f:
-            ca_cert = x509.load_pem_x509_certificate(f.read(), default_backend())
-
-        return ca_key, ca_cert
 
     def install_cert(self, context, cert, dds_csr):
         # TODO shouldn't choice of ca hash_algorithm come from ca context?
@@ -129,7 +131,7 @@ class DDSCertificateHelper:
 
         serial_number = int(cert.find('serial_number').text)
         issuer_name = cert.find('issuer_name').text
-        ca_key, ca_cert = self.get_ca(context, issuer_name)
+        ca_key, ca_cert = get_ca(context, issuer_name)
 
         cert_builder = x509.CertificateBuilder()
         cert_builder = cert_builder.subject_name(subject
