@@ -18,8 +18,9 @@ from copy import deepcopy
 
 import xmlschema
 
+from keymint_keymake.pki.certificate import get_ca
+
 from .exceptions import InvalidGovernanceXML
-from .identities import get_ca
 from .namespace import DDSNamespaceHelper
 from .schemas import get_dds_schema_path
 from .smime.sign import sign_data
