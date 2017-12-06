@@ -27,6 +27,7 @@ from .schemas import get_dds_schema_path
 
 from keymint_keymake.pki.asymmetric import AsymmetricHelper
 from keymint_keymake.pki.certificate import CertificateHelper
+from keymint_keymake.pki.certificate import get_ca_csr, get_ca_key
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -57,8 +58,8 @@ class DDSAuthoritiesHelper(AuthoritiesHelper):
         dds_key = generator(context, asymmetric_type)
         return dds_key
 
-    def _build_csr(self, context, csr, dds_key):
-        dds_csr = self.dds_certificate_helper.build_csr(context, csr, dds_key)
+    def _build_csr(self, context, authority, csr, dds_key):
+        dds_csr = self.dds_certificate_helper.build_csr(context, authority, csr, dds_key)
         return dds_csr
 
     def _build_authority(self, context, authority):
@@ -71,7 +72,7 @@ class DDSAuthoritiesHelper(AuthoritiesHelper):
         dds_key_bytes = self.dds_asymmetric_helper.serialize(context, key, dds_key)
 
         csr = authority.find('cert')
-        dds_csr = self._build_csr(context, csr, dds_key)
+        dds_csr = self._build_csr(context, authority, csr, dds_key)
         dds_csr_bytes = self.dds_certificate_helper.serialize(context, csr, dds_csr)
 
         dds_authority['dds_key'] = {'object': dds_key, 'bytes': dds_key_bytes}
@@ -79,37 +80,37 @@ class DDSAuthoritiesHelper(AuthoritiesHelper):
 
         return dds_authority
 
-    def build(self, context):
+    def build_iter(self, context):
         authorities = deepcopy(context.profile_manifest.authorities)
-        dds_authorities = []
 
         for authority in authorities.findall('authority'):
             dds_authority = self._build_authority(context, authority)
-            dds_authorities.append(dds_authority)
+            yield dds_authority
 
-        return dds_authorities
+        return
 
-    def _install_authority(self, context, authority, dds_authority):
+    def _install_authority(self, context, authority):
+
+        dds_authority = {}
+        dds_authority['name'] = authority.get('name')
+
         cert = authority.find('cert')
 
-        dds_csr_bytes = dds_authority['dds_csr']['bytes']
-        dds_csr = x509.load_pem_x509_csr(dds_csr_bytes, default_backend())
-
-        dds_key_bytes = dds_authority['dds_key']['bytes']
-        dds_key = serialization.load_pem_private_key(
-            dds_key_bytes,
-            password=None,
-            backend=default_backend())
+        dds_csr = get_ca_csr(context, dds_authority['name'])
+        dds_key = get_ca_key(context, dds_authority['name'])
 
         dds_cert = self.dds_certificate_helper.install_cert(context, cert, dds_csr, dds_key)
         dds_cert_bytes = self.dds_certificate_helper.serialize(context, cert, dds_cert)
 
-        dds_authority['dds_csr'] = {'object': dds_csr, 'bytes': dds_csr_bytes}
         dds_authority['dds_cert'] = {'object': dds_cert, 'bytes': dds_cert_bytes}
 
         return dds_authority
 
-    def install(self, context, dds_authority):
-        authority = deepcopy(context.profile_manifest.authorities.findall('authority')[0])
-        dds_authority = self._install_authority(context, authority, dds_authority)
-        return dds_authority
+    def install_iter(self, context):
+        authorities = deepcopy(context.profile_manifest.authorities)
+
+        for authority in authorities.findall('authority'):
+            dds_authority = self._install_authority(context, authority)
+            yield dds_authority
+
+        return

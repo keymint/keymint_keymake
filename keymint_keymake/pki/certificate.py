@@ -15,13 +15,12 @@
 import os
 import datetime
 
-# import xml.etree.ElementTree as ElementTree
-
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 
+from keymint_keymake.pki.asymmetric import get_password
 
 def parse_dn(dn):
     """Simple 'Distinguished Name' or RDN parser"""
@@ -37,21 +36,54 @@ def parse_dn(dn):
                 parts.append([key, value])
     return dict(parts)
 
+def get_ca_password(context, issuer_name):
+    if hasattr(context, 'profile_manifest'):
+        if hasattr(context.profile_manifest, 'authorities'):
+            path = "authority/[@name='{issuer_name}']".format(
+                issuer_name=issuer_name)
+            authority = context.profile_manifest.authorities.find(path)
+            if authority is not None:
+                password_env = authority.findtext("key/password_env")
+                if password_env:
+                    password = get_password(password_env)
+                    return password
+    return None
 
-def get_ca(context, issuer_name):
-    # TODO conceder getting ca password from profile context
+def get_ca_cert(context, issuer_name):
+    issuer_name = os.path.normpath(issuer_name)
+    ca_cert_path = os.path.join(context.public_space, issuer_name + '.cert.pem')
+
+    with open(ca_cert_path, 'rb') as f:
+        ca_cert = x509.load_pem_x509_certificate(f.read(), default_backend())
+
+    return ca_cert
+
+def get_ca_key(context, issuer_name):
     issuer_name = os.path.normpath(issuer_name)
     ca_key_path = os.path.join(context.private_space, issuer_name + '.key.pem')
-    ca_cert_path = os.path.join(context.public_space, issuer_name + '.cert.pem')
+    password = get_ca_password(context, issuer_name)
 
     with open(ca_key_path, 'rb') as f:
         ca_key = serialization.load_pem_private_key(
             f.read(),
-            password=None,
+            password=password,
             backend=default_backend())
 
-    with open(ca_cert_path, 'rb') as f:
-        ca_cert = x509.load_pem_x509_certificate(f.read(), default_backend())
+    return ca_key
+
+def get_ca_csr(context, issuer_name):
+    issuer_name = os.path.normpath(issuer_name)
+    ca_csr_path = os.path.join(context.private_space, issuer_name + '.csr.pem')
+
+    with open(ca_csr_path, 'rb') as f:
+        ca_csr = x509.load_pem_x509_csr(f.read(), default_backend())
+
+    return ca_csr
+
+def get_ca(context, issuer_name):
+
+    ca_key = get_ca_key(context, issuer_name)
+    ca_cert = get_ca_cert(context, issuer_name)
 
     return ca_key, ca_cert
 
@@ -85,11 +117,11 @@ class CertificateHelper:
         return attributes
 
 
-    def build_csr(self, context, csr, dds_key):
+    def build_csr(self, context, identity, csr, dds_key):
         # OMG Secure DDS 9.4.1.3.2.1 Subject name Section
         # https://tools.ietf.org/html/rfc4514
         hash_algorithm = getattr(hashes, csr.find('hash_algorithm').text)
-        subject_name = csr.find('subject_name').text
+        subject_name = csr.find('subject_name').text.format(**identity.attrib)
         dn_dict = parse_dn(subject_name)
         attributes = self.dn_dict_to_attributes(dn_dict)
 
@@ -122,7 +154,7 @@ class CertificateHelper:
             ).public_key(dds_csr.public_key())
 
         issuer_name = cert.find('issuer_name').text
-        if issuer_name:
+        if issuer_name is not None:
             # If an issuer name is provided, use it
             ca_key, ca_cert = get_ca(context, issuer_name)
             cert_builder = cert_builder.issuer_name(ca_cert.subject)

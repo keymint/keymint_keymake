@@ -25,7 +25,7 @@ from .namespace import DDSNamespaceHelper
 from .schemas import get_dds_schema_path
 from .smime.sign import sign_data
 
-from .utils import pretty_xml, tidy_xml
+from keymint_package.xml.utils import pretty_xml, tidy_xml
 
 
 class AccessRuleHelper:

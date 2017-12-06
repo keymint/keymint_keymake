@@ -21,6 +21,9 @@ from cryptography.hazmat.primitives import asymmetric
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
+def get_password(password_env):
+    password = bytes(os.environ[password_env], 'utf-8')
+    return password
 
 class AsymmetricHelper:
     """Help build asymmetric keys into artifacts."""
@@ -30,7 +33,7 @@ class AsymmetricHelper:
         if encryption_algorithm == 'NoEncryption':
             encryption_algorithm = serialization.NoEncryption()
         else:
-            password = bytes(os.environ[key.find('password_env').text], 'utf-8')
+            password = get_password(key.find('password_env').text)
             encryption_algorithm = getattr(serialization, encryption_algorithm)(password)
 
         dds_key_bytes = dds_key.private_bytes(

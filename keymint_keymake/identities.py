@@ -56,8 +56,8 @@ class DDSIdentitiesHelper(IdentitiesHelper):
         dds_key = generator(context, asymmetric_type)
         return dds_key
 
-    def _build_csr(self, context, csr, dds_key):
-        dds_csr = self.dds_certificate_helper.build_csr(context, csr, dds_key)
+    def _build_csr(self, context, identity, csr, dds_key):
+        dds_csr = self.dds_certificate_helper.build_csr(context, identity, csr, dds_key)
         return dds_csr
 
     def _build_identity(self, context, identity):
@@ -70,7 +70,7 @@ class DDSIdentitiesHelper(IdentitiesHelper):
         dds_key_bytes = self.dds_asymmetric_helper.serialize(context, key, dds_key)
 
         csr = identity.find('cert')
-        dds_csr = self._build_csr(context, csr, dds_key)
+        dds_csr = self._build_csr(context, identity, csr, dds_key)
         dds_csr_bytes = self.dds_certificate_helper.serialize(context, csr, dds_csr)
 
         dds_identity['dds_key'] = {'object': dds_key, 'bytes': dds_key_bytes}
