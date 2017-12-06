@@ -14,6 +14,7 @@
 
 import os
 import datetime
+import uuid
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ObjectIdentifier
@@ -144,7 +145,11 @@ class CertificateHelper:
         not_after = validity.find('not_after').text
         not_after_datetime = datetime.datetime.strptime(not_after, '%Y-%m-%dT%H:%M:%S')
 
-        serial_number = int(cert.find('serial_number').text)
+        serial_number = cert.find('serial_number').text
+        if serial_number:
+            serial_number = int(serial_number)
+        else:
+            serial_number = int(uuid.uuid4())
 
         cert_builder = x509.CertificateBuilder()
         cert_builder = cert_builder.subject_name(subject
