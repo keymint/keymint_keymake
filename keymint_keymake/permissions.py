@@ -135,9 +135,8 @@ class DDSPermissionsHelper(PermissionsHelper):
         dds_rule = ElementTree.Element(rule.tag)
 
         domains = rule.find('domains')
-        if domains is not None:
-            dds_rule.append(domains)
-            rule.remove(domains)
+        dds_rule.append(domains)
+        rule.remove(domains)
 
         for criteria in rule.getchildren():
             if criteria.tag in self._dds_criteria_types:
@@ -155,25 +154,22 @@ class DDSPermissionsHelper(PermissionsHelper):
         dds_grant.set('name', name)
 
         subject_name = grant.find('subject_name')
-        if subject_name is not None:
-            dds_grant.append(subject_name)
-            grant.remove(subject_name)
+        subject_name.text = subject_name.text.format(**grant.attrib)
+        dds_grant.append(subject_name)
+        grant.remove(subject_name)
 
         validity = grant.find('validity')
-        if validity is not None:
-            dds_grant.append(validity)
-            grant.remove(validity)
+        dds_grant.append(validity)
+        grant.remove(validity)
 
         default = grant.find('default')
-        if default is not None:
-            grant.remove(default)
+        grant.remove(default)
 
         for rule in grant.getchildren():
             dds_rule = self._build_rule(context, rule)
             dds_grant.append(dds_rule)
 
-        if default is not None:
-            dds_grant.append(default)
+        dds_grant.append(default)
 
         return dds_grant
 
