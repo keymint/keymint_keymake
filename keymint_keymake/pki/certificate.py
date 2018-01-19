@@ -149,7 +149,7 @@ class CertificateHelper:
         if serial_number:
             serial_number = int(serial_number)
         else:
-            serial_number = int(uuid.uuid4())
+            serial_number = abs(int(uuid.uuid4()))
 
         cert_builder = x509.CertificateBuilder()
         cert_builder = cert_builder.subject_name(subject
