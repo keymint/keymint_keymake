@@ -47,7 +47,20 @@ class DDSCriteriasHelper(CriteriasHelpter):
         for dds_criteria in dds_criterias:
             dds_criteria.append(expression_list)
 
-    def topics(self, expression_list):
+    def _dds_criterias(self, context, criteria, dds_permission):
+        dds_criterias = []
+        dds_criterias.append(dds_permission)
+        for expression_list in criteria.getchildren():
+            if expression_list.tag in self._dds_expression_list_types:
+                self._dds_expressions(dds_criteria, dds_criterias)
+                continue
+            else:
+                formater = getattr(self, expression_list.tag)
+                expression_list = formater(expression_list)
+                dds_permission.append(expression_list)
+        return dds_criterias
+
+    def ros_topics(self, expression_list):
         topics = ElementTree.Element('topics')
         for expression in expression_list.getchildren():
             topic = ElementTree.Element('topic')
@@ -58,31 +71,15 @@ class DDSCriteriasHelper(CriteriasHelpter):
 
     def ros_publish(self, context, criteria):
         dds_publish = ElementTree.Element('publish')
-        dds_criterias = []
-        dds_criterias.append(dds_publish)
-        for expression_list in criteria.getchildren():
-            if expression_list.tag in self._dds_expression_list_types:
-                self._dds_expressions(dds_criteria, dds_criterias)
-                continue
-            else:
-                formater = getattr(self, expression_list.tag)
-                expression_list = formater(expression_list)
-                dds_publish.append(expression_list)
-        return dds_criterias
+        return self._dds_criterias(context, criteria, dds_publish)
 
     def ros_subscribe(self, context, criteria):
         dds_subscribe = ElementTree.Element('subscribe')
-        dds_criterias = []
-        dds_criterias.append(dds_subscribe)
-        for expression_list in criteria.getchildren():
-            if expression_list.tag in self._dds_expression_list_types:
-                self._dds_expressions(dds_criteria, dds_criterias)
-                continue
-            else:
-                formater = getattr(self, expression_list.tag)
-                expression_list = formater(expression_list)
-                dds_subscribe.append(expression_list)
-        return dds_criterias
+        return self._dds_criterias(context, criteria, dds_subscribe)
+
+    def ros_relay(self, context, criteria):
+        dds_subscribe = ElementTree.Element('relay')
+        return self._dds_criterias(context, criteria, dds_subscribe)
 
     def ros_call(self, context, criteria):
         # TODO
@@ -122,8 +119,6 @@ class PermissionsHelper:
 class DDSPermissionsHelper(PermissionsHelper):
     """Help build permission into artifacts."""
 
-    _dds_criteria_types = ['publish', 'subscribe', 'relay']
-
     def __init__(self):
         self.dds_criterias_helper = DDSCriteriasHelper()
 
@@ -139,11 +134,13 @@ class DDSPermissionsHelper(PermissionsHelper):
         rule.remove(domains)
 
         for criteria in rule.getchildren():
-            if criteria.tag in self._dds_criteria_types:
-                dds_rule.append(criteria)
-            else:
+            if hasattr(self.dds_criterias_helper, criteria.tag):
                 dds_criterias = self._build_criterias(context, criteria)
                 dds_rule.extend(dds_criterias)
+            else:
+                dds_rule.append(criteria)
+        # TODO Should we attempt to sort dds_criterias as expected in DDS schema
+        # TODO Should we attempt to compress compatable dds_criterias by merging
         return dds_rule
 
     def _build_grant(self, context, grant):

@@ -28,5 +28,5 @@ class DDSNamespaceHelper(NamespaceHelper):
     def __init__(self):
         pass
 
-    def topic(self, ros_topic_str):
+    def ros_topic(self, ros_topic_str):
         return 'rt' + ros_topic_str.replace('/', '__')
