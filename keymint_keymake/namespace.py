@@ -28,5 +28,31 @@ class DDSNamespaceHelper(NamespaceHelper):
     def __init__(self):
         pass
 
-    def ros_topic(self, ros_topic_str):
-        return 'rt' + ros_topic_str.replace('/', '__')
+    def ros_topic(self, expression, partitions, data_tags):
+        dds_topic = ElementTree.Element('topic')
+        dds_topic.text = expression.text.split('/')[-1]
+
+        dds_partition = ElementTree.Element('partition')
+        temp =  '/'.join(expression.text.split('/')[:-1])
+        if temp:
+            temp = '_' + temp.replace('/', '_')
+        dds_partition.text = 'rt' + temp
+
+        if dds_topic.text:
+            dds_topics = ElementTree.Element('topics')
+            dds_topics.append(dds_topic)
+        else:
+            dds_topics = None
+
+        if partitions:
+            dds_partitions = partitions
+        else:
+            dds_partitions = ElementTree.Element('partitions')
+            dds_partitions.append(dds_partition)
+
+        if data_tags:
+            dds_data_tags = data_tags
+        else:
+            dds_data_tags = None
+
+        return dds_topics, dds_partitions, dds_data_tags

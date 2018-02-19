@@ -38,6 +38,7 @@ class CriteriasHelpter:
 class DDSCriteriasHelper(CriteriasHelpter):
     """Help build permission into artifacts."""
 
+    _dds_expressions_types = ['partition', 'tag']
     _dds_expression_list_types = ['partitions', 'data_tags']
 
     def __init__(self):
@@ -47,39 +48,56 @@ class DDSCriteriasHelper(CriteriasHelpter):
         for dds_criteria in dds_criterias:
             dds_criteria.append(expression_list)
 
-    def _dds_criterias(self, context, criteria, dds_permission):
+    def _dds_criterias(self, context, criteria, dds_criteria_kind):
         dds_criterias = []
-        dds_criterias.append(dds_permission)
-        for expression_list in criteria.getchildren():
-            if expression_list.tag in self._dds_expression_list_types:
-                self._dds_expressions(dds_criteria, dds_criterias)
-                continue
-            else:
-                formater = getattr(self, expression_list.tag)
-                expression_list = formater(expression_list)
-                dds_permission.append(expression_list)
+        partitions = criteria.find('partitions')
+        if partitions:
+            criteria.remove(partitions)
+        data_tags = criteria.find('data_tags')
+        if data_tags:
+            criteria.remove(data_tags)
+        for expression_list in list(criteria):
+            for expression in list(expression_list):
+                if hasattr(self, expression.tag):
+                    formater = getattr(self, expression.tag)
+                    dds_criteria = formater(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
+                    dds_criterias.append(dds_criteria)
+                else:
+                    dds_criteria = ElementTree.Element(dds_criteria_kind)
+                    dds_expression_list = ElementTree.Element(expression_list.tag)
+                    dds_expression_list.append(expression)
+                    dds_criteria.append(dds_expression_list)
+                    if partitions:
+                        dds_criteria.append(partitions)
+                    if data_tags:
+                        dds_criteria.append(data_tags)
+                    dds_criterias.append(dds_criteria)
         return dds_criterias
 
-    def ros_topics(self, expression_list):
-        topics = ElementTree.Element('topics')
-        for expression in expression_list.getchildren():
-            topic = ElementTree.Element('topic')
-            formater = getattr(self.dds_namespaces_helper, expression.tag)
-            topic.text = formater(expression.text)
-            topics.append(topic)
-        return topics
+    def ros_topic(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
+        dds_criteria = ElementTree.Element(dds_criteria_kind)
+        dds_expression_list = ElementTree.Element(expression_list.tag)
+        dds_expression = ElementTree.Element(expression.tag)
+
+        formater = getattr(self.dds_namespaces_helper, expression.tag)
+        dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags)
+
+        if dds_topics:
+            dds_criteria.append(dds_topics)
+        if dds_partitions:
+            dds_criteria.append(dds_partitions)
+        if dds_data_tags:
+            dds_criteria.append(dds_data_tags)
+        return dds_criteria
 
     def ros_publish(self, context, criteria):
-        dds_publish = ElementTree.Element('publish')
-        return self._dds_criterias(context, criteria, dds_publish)
+        return self._dds_criterias(context, criteria, 'publish')
 
     def ros_subscribe(self, context, criteria):
-        dds_subscribe = ElementTree.Element('subscribe')
-        return self._dds_criterias(context, criteria, dds_subscribe)
+        return self._dds_criterias(context, criteria, 'subscribe')
 
     def ros_relay(self, context, criteria):
-        dds_subscribe = ElementTree.Element('relay')
-        return self._dds_criterias(context, criteria, dds_subscribe)
+        return self._dds_criterias(context, criteria, 'relay')
 
     def ros_call(self, context, criteria):
         # TODO
@@ -133,9 +151,11 @@ class DDSPermissionsHelper(PermissionsHelper):
         dds_rule.append(domains)
         rule.remove(domains)
 
-        for criteria in rule.getchildren():
+        for criteria in list(rule):
             if hasattr(self.dds_criterias_helper, criteria.tag):
+                print("    criteria.tag: ", criteria.tag)
                 dds_criterias = self._build_criterias(context, criteria)
+                print("    dds_criterias: ", dds_criterias)
                 dds_rule.extend(dds_criterias)
             else:
                 dds_rule.append(criteria)
