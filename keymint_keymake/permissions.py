@@ -44,9 +44,27 @@ class DDSCriteriasHelper(CriteriasHelpter):
     def __init__(self):
         self.dds_namespaces_helper = DDSNamespaceHelper()
 
-    def _dds_expressions(self, dds_criteria, dds_criterias):
-        for dds_criteria in dds_criterias:
-            dds_criteria.append(expression_list)
+    def _dds_criteria(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
+        dds_criteria = ElementTree.Element(dds_criteria_kind)
+        dds_expression_list = ElementTree.Element(expression_list.tag)
+        dds_expression = ElementTree.Element(expression.tag)
+
+        formater = getattr(self.dds_namespaces_helper, expression.tag)
+        dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags, dds_criteria_kind)
+
+        if dds_topics:
+            dds_criteria.append(dds_topics)
+        if dds_partitions:
+            dds_criteria.append(dds_partitions)
+        if dds_data_tags:
+            dds_criteria.append(dds_data_tags)
+        return dds_criteria
+
+    def ros_topic(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
+        return self._dds_criteria(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
+
+    def ros_service(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
+        return self._dds_criteria(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
 
     def _dds_criterias(self, context, criteria, dds_criteria_kind):
         dds_criterias = []
@@ -74,22 +92,6 @@ class DDSCriteriasHelper(CriteriasHelpter):
                     dds_criterias.append(dds_criteria)
         return dds_criterias
 
-    def ros_topic(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
-        dds_criteria = ElementTree.Element(dds_criteria_kind)
-        dds_expression_list = ElementTree.Element(expression_list.tag)
-        dds_expression = ElementTree.Element(expression.tag)
-
-        formater = getattr(self.dds_namespaces_helper, expression.tag)
-        dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags)
-
-        if dds_topics:
-            dds_criteria.append(dds_topics)
-        if dds_partitions:
-            dds_criteria.append(dds_partitions)
-        if dds_data_tags:
-            dds_criteria.append(dds_data_tags)
-        return dds_criteria
-
     def ros_publish(self, context, criteria):
         return self._dds_criterias(context, criteria, 'publish')
 
@@ -100,8 +102,10 @@ class DDSCriteriasHelper(CriteriasHelpter):
         return self._dds_criterias(context, criteria, 'relay')
 
     def ros_call(self, context, criteria):
-        # TODO
-        return []
+        dds_criterias = []
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'publish'))
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'subscribe'))
+        return dds_criterias
 
     def ros_execute(self, context, criteria):
         # TODO
