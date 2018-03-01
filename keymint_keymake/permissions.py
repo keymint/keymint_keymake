@@ -157,9 +157,7 @@ class DDSPermissionsHelper(PermissionsHelper):
 
         for criteria in list(rule):
             if hasattr(self.dds_criterias_helper, criteria.tag):
-                print("    criteria.tag: ", criteria.tag)
                 dds_criterias = self._build_criterias(context, criteria)
-                print("    dds_criterias: ", dds_criterias)
                 dds_rule.extend(dds_criterias)
             else:
                 dds_rule.append(criteria)
