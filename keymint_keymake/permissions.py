@@ -52,11 +52,11 @@ class DDSCriteriasHelper(CriteriasHelpter):
         formater = getattr(self.dds_namespaces_helper, expression.tag)
         dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags, dds_criteria_kind)
 
-        if dds_topics:
+        if dds_topics is not None:
             dds_criteria.append(dds_topics)
-        if dds_partitions:
+        if dds_partitions is not None:
             dds_criteria.append(dds_partitions)
-        if dds_data_tags:
+        if dds_data_tags is not None:
             dds_criteria.append(dds_data_tags)
         return dds_criteria
 
