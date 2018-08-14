@@ -148,6 +148,8 @@ class CertificateHelper:
         serial_number = cert.find('serial_number').text
         if serial_number:
             serial_number = int(serial_number)
+            if serial_number <= 0:
+                serial_number = abs(int(uuid.uuid4()))
         else:
             serial_number = abs(int(uuid.uuid4()))
 
