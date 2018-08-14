@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import xml.etree.ElementTree as ElementTree
+from xml.etree import cElementTree as ElementTree
 
 
 class NamespaceHelper:

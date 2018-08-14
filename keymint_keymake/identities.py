@@ -15,7 +15,7 @@
 import os
 import datetime
 
-import xml.etree.ElementTree as ElementTree
+from xml.etree import cElementTree as ElementTree
 
 from copy import deepcopy
 
