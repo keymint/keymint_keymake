@@ -27,6 +27,30 @@ from .smime.sign import sign_data
 
 from keymint_package.xml.utils import pretty_xml, tidy_xml
 
+def _compatible_criteria(dds_criteria, criteria):
+    partitions = criteria.find('partitions')
+    dds_partitions = dds_criteria.find('partitions')
+    if not partitions == dds_partitions:
+        if partitions is None:
+            return False
+        else:
+            partitions = [i.text for i in partitions.iter()]
+            dds_partitions = [i.text for i in dds_partitions.iter()]
+            if not set(partitions) == set(dds_partitions):
+                return False
+
+    data_tags = criteria.find('data_tags')
+    dds_data_tags = dds_criteria.find('data_tags')
+    if not data_tags == dds_data_tags:
+        if data_tags is None:
+            return False
+        else:
+            data_tags = [i.text for i in data_tags.iter()]
+            dds_data_tags = [i.text for i in dds_data_tags.iter()]
+            if not set(data_tags) == set(dds_data_tags):
+                return False
+    return True
+
 
 class CriteriasHelpter:
     """Help build criteria into artifacts."""
@@ -144,6 +168,28 @@ class DDSPermissionsHelper(PermissionsHelper):
     def __init__(self):
         self.dds_criterias_helper = DDSCriteriasHelper()
 
+    def _compress_rule(self, context, rule):
+        dds_rule = ElementTree.Element(rule.tag)
+
+        domains = rule.find('domains')
+        dds_rule.append(domains)
+        rule.remove(domains)
+
+        for criteria in list(rule):
+            dds_criterias = dds_rule.findall(criteria.tag)
+            if dds_criterias is None:
+                dds_rule.append(criteria)
+            else:
+                for dds_criteria in dds_criterias:
+                    if _compatible_criteria(dds_criteria, criteria):
+                        topics = criteria.find('topics')
+                        dds_topics = dds_criteria.find('topics')
+                        dds_topics.extend(topics)
+                        break
+                else:
+                    dds_rule.append(criteria)
+        return dds_rule
+
     def _build_criterias(self, context, criteria):
         formater = getattr(self.dds_criterias_helper, criteria.tag)
         return formater(context, criteria)
@@ -162,7 +208,9 @@ class DDSPermissionsHelper(PermissionsHelper):
             else:
                 dds_rule.append(criteria)
         # TODO Should we attempt to sort dds_criterias as expected in DDS schema
-        # TODO Should we attempt to compress compatable dds_criterias by merging
+
+        dds_rule = self._compress_rule(context, dds_rule)
+
         return dds_rule
 
     def _build_grant(self, context, grant):
