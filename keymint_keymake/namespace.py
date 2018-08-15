@@ -29,15 +29,11 @@ class DDSNamespaceHelper(NamespaceHelper):
         pass
 
     def ros_topic(self, expression, partitions, data_tags, dds_criteria_kind):
-        dds_topic = ElementTree.Element('topic')
-        dds_topic.text = expression.text.split('/')[-1]
 
-        dds_partition = ElementTree.Element('partition')
-        temp =  '/'.join(expression.text.split('/')[:-1])
-        dds_partition.text = 'rt' + temp
-
-        if dds_topic.text:
+        if expression.text:
             dds_topics = ElementTree.Element('topics')
+            dds_topic = ElementTree.Element('topic')
+            dds_topic.text = 'rt' + expression.text
             dds_topics.append(dds_topic)
         else:
             dds_topics = None
@@ -45,8 +41,7 @@ class DDSNamespaceHelper(NamespaceHelper):
         if partitions:
             dds_partitions = partitions
         else:
-            dds_partitions = ElementTree.Element('partitions')
-            dds_partitions.append(dds_partition)
+            dds_partitions = None
 
         if data_tags:
             dds_data_tags = data_tags
@@ -56,21 +51,14 @@ class DDSNamespaceHelper(NamespaceHelper):
         return dds_topics, dds_partitions, dds_data_tags
 
     def ros_service(self, expression, partitions, data_tags, dds_criteria_kind):
-        dds_topic = ElementTree.Element('topic')
-        dds_topic.text = expression.text.split('/')[-1]
 
-        dds_partition = ElementTree.Element('partition')
-        temp =  '/'.join(expression.text.split('/')[:-1])
-
-        if dds_criteria_kind == 'publish':
-            dds_partition.text = 'rq' + temp
-            dds_topic.text = dds_topic.text + 'Request'
-        if dds_criteria_kind == 'subscribe':
-            dds_partition.text = 'rr' + temp
-            dds_topic.text = dds_topic.text + 'Reply'
-
-        if dds_topic.text:
+        if expression.text:
             dds_topics = ElementTree.Element('topics')
+            dds_topic = ElementTree.Element('topic')
+            if dds_criteria_kind == 'publish':
+                dds_topic.text = 'rq' + expression.text + 'Request'
+            if dds_criteria_kind == 'subscribe':
+                dds_topic.text = 'rr' + expression.text + 'Reply'
             dds_topics.append(dds_topic)
         else:
             dds_topics = None
@@ -78,12 +66,12 @@ class DDSNamespaceHelper(NamespaceHelper):
         if partitions:
             dds_partitions = partitions
         else:
-            dds_partitions = ElementTree.Element('partitions')
-            dds_partitions.append(dds_partition)
+            dds_partitions = None
 
         if data_tags:
             dds_data_tags = data_tags
         else:
             dds_data_tags = None
+
 
         return dds_topics, dds_partitions, dds_data_tags
