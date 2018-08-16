@@ -168,6 +168,10 @@ class DDSPermissionsHelper(PermissionsHelper):
     def __init__(self):
         self.dds_criterias_helper = DDSCriteriasHelper()
 
+    def _build_criterias(self, context, criteria):
+        formater = getattr(self.dds_criterias_helper, criteria.tag)
+        return formater(context, criteria)
+
     def _compress_rule(self, context, rule):
         dds_rule = ElementTree.Element(rule.tag)
 
@@ -189,10 +193,6 @@ class DDSPermissionsHelper(PermissionsHelper):
                 else:
                     dds_rule.append(criteria)
         return dds_rule
-
-    def _build_criterias(self, context, criteria):
-        formater = getattr(self.dds_criterias_helper, criteria.tag)
-        return formater(context, criteria)
 
     def _build_rule(self, context, rule):
         dds_rule = ElementTree.Element(rule.tag)
