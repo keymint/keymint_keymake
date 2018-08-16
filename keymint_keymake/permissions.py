@@ -64,14 +64,20 @@ class DDSCriteriasHelper(CriteriasHelpter):
 
     _dds_expressions_types = ['partition', 'tag']
     _dds_expression_list_types = ['partitions', 'data_tags']
+    _dds_dds_criteria_kind_mapping = {
+        'publish': 'publish',
+        'publish_request': 'publish',
+        'publish_reply': 'publish',
+        'subscribe': 'subscribe',
+        'subscribe_request': 'subscribe',
+        'subscribe_reply': 'subscribe',
+    }
 
     def __init__(self):
         self.dds_namespaces_helper = DDSNamespaceHelper()
 
     def _dds_criteria(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
-        dds_criteria = ElementTree.Element(dds_criteria_kind)
-        dds_expression_list = ElementTree.Element(expression_list.tag)
-        dds_expression = ElementTree.Element(expression.tag)
+        dds_criteria = ElementTree.Element(self._dds_dds_criteria_kind_mapping[dds_criteria_kind])
 
         formater = getattr(self.dds_namespaces_helper, expression.tag)
         dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags, dds_criteria_kind)
@@ -127,13 +133,15 @@ class DDSCriteriasHelper(CriteriasHelpter):
 
     def ros_call(self, context, criteria):
         dds_criterias = []
-        dds_criterias.extend(self._dds_criterias(context, criteria, 'publish'))
-        dds_criterias.extend(self._dds_criterias(context, criteria, 'subscribe'))
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'publish_request'))
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'subscribe_reply'))
         return dds_criterias
 
     def ros_execute(self, context, criteria):
-        # TODO
-        return []
+        dds_criterias = []
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'subscribe_request'))
+        dds_criterias.extend(self._dds_criterias(context, criteria, 'publish_reply'))
+        return dds_criterias
 
     def ros_request(self, context, criteria):
         # TODO

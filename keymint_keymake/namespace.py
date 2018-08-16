@@ -55,9 +55,9 @@ class DDSNamespaceHelper(NamespaceHelper):
         if expression.text:
             dds_topics = ElementTree.Element('topics')
             dds_topic = ElementTree.Element('topic')
-            if dds_criteria_kind == 'publish':
+            if dds_criteria_kind in ['publish_request', 'subscribe_request']:
                 dds_topic.text = 'rq' + expression.text + 'Request'
-            if dds_criteria_kind == 'subscribe':
+            if dds_criteria_kind in ['publish_reply', 'subscribe_reply']:
                 dds_topic.text = 'rr' + expression.text + 'Reply'
             dds_topics.append(dds_topic)
         else:
