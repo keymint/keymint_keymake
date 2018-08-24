@@ -76,6 +76,9 @@ def _sign_bio(data_bio, key, cert, source_type,
 def _sign_data(data_bytes, key, cert,
                source_type='file', source_format='PEM'):
 
+    # TODO: find out why fastrtps needs this
+    data_bytes = "Content-Type: text/plain\n\n".encode() + data_bytes
+
     out_bio = BIO.MemoryBuffer()
 
     data_bio = BIO.MemoryBuffer(data=data_bytes)
