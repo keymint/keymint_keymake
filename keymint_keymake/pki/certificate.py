@@ -89,6 +89,15 @@ def get_ca(context, issuer_name):
     return ca_key, ca_cert
 
 
+class ExtensionHelper:
+    """Help embed extensions into certificate artifacts."""
+
+    def BasicConstraints(self, extension):
+        ca = extension.find('ca').text == 'true'
+        path_length = int(extension.find('path_length').text)
+        return x509.BasicConstraints(ca=ca, path_length=path_length)
+
+
 class CertificateHelper:
     """Help build certificate into artifacts."""
 
@@ -106,6 +115,8 @@ class CertificateHelper:
     }
     # https://github.com/pyca/cryptography/blob/master/src/cryptography/x509/oid.py
     _NAMES_OID = {v: k for k, v in x509.oid._OID_NAMES.items()}
+
+    extension_helper = ExtensionHelper()
 
     def dn_dict_to_attributes(self, dn_dict):
         attributes = []
@@ -159,6 +170,12 @@ class CertificateHelper:
             ).not_valid_before(not_before_datetime
             ).not_valid_after(not_after_datetime
             ).public_key(dds_csr.public_key())
+
+        for extension_type in cert.findall('extensions/*'):
+            extension_constructor = getattr(self.extension_helper, extension_type.tag)
+            extension = extension_constructor(extension_type)
+            critical = extension_type.get('critical') == 'true'
+            cert_builder = cert_builder.add_extension(extension, critical)
 
         issuer_name = cert.find('issuer_name').text
         if issuer_name is not None:
