@@ -70,23 +70,20 @@ def _sign_bio(data_bio, key, cert, source_type,
     except SMIME.PKCS7_Error as e:
         logging.error(msg='pkcs7 error: ' + str(e))
         raise
-    return pkcs7, smime
+    return pkcs7, smime, flags
 
 
 def _sign_data(data_bytes, key, cert,
                source_type='file', source_format='PEM'):
 
-    # TODO: find out why fastrtps needs this
-    data_bytes = "Content-Type: text/plain\n\n".encode() + data_bytes
-
     out_bio = BIO.MemoryBuffer()
 
     data_bio = BIO.MemoryBuffer(data=data_bytes)
-    pkcs7, smime = _sign_bio(data_bio=data_bio, key=key, cert=cert,
+    pkcs7, smime, flags = _sign_bio(data_bio=data_bio, key=key, cert=cert,
                              source_type=source_type, source_format=source_format)
 
     data_bio = BIO.MemoryBuffer(data=data_bytes)
-    smime.write(out_bio=out_bio, pkcs7=pkcs7, data_bio=data_bio)
+    smime.write(out_bio=out_bio, pkcs7=pkcs7, data_bio=data_bio, flags=flags)
     out_data = out_bio.read()
 
     return out_data
