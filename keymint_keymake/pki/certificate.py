@@ -29,12 +29,11 @@ def parse_dn(dn):
     # https://github.com/cannatag/ldap3/blob/681e4d8f80032437d4937f29e83f18f6740e6e37/ldap3/utils/dn.py#L274
     # https://stackoverflow.com/questions/23715944/parsing-x509-distinguished-name
     parts = []
-    for i in dn.split('/'):
-        for j in i.split(','):
-            if '=' in j:
-                [key, value] = j.split('=', 1)
-                key = key.strip()
-                parts.append([key, value])
+    for i in dn.split(','):
+        if '=' in i:
+            [key, value] = i.split('=', 1)
+            key = key.strip()
+            parts.append([key, value])
     return dict(parts)
 
 def get_ca_password(context, issuer_name):
