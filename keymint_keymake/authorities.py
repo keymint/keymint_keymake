@@ -12,26 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import datetime
-
-from xml.etree import cElementTree as ElementTree
+# import os
+# import datetime
 
 from copy import deepcopy
 
-import xmlschema
+# from xml.etree import cElementTree as ElementTree
 
-from .exceptions import InvalidPermissionsXML
-from .namespace import DDSNamespaceHelper
-from .schemas import get_dds_schema_path
+
+# import xmlschema
+
+# from .exceptions import InvalidPermissionsXML
+# from .namespace import DDSNamespaceHelper
+# from .schemas import get_dds_schema_path
 
 from keymint_keymake.pki.asymmetric import AsymmetricHelper
 from keymint_keymake.pki.certificate import CertificateHelper
 from keymint_keymake.pki.certificate import get_ca_csr, get_ca_key
 
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+# from cryptography import x509
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives import serialization
 
 
 class AuthoritiesHelper:

@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 from xml.etree import cElementTree as ElementTree
 
-from copy import deepcopy
+from keymint_keymake.pki.certificate import get_ca
+
+from keymint_package.xml.utils import pretty_xml, tidy_xml
 
 import xmlschema
-
-from keymint_keymake.pki.certificate import get_ca
 
 from .exceptions import InvalidPermissionsXML
 from .namespace import DDSNamespaceHelper
 from .schemas import get_dds_schema_path
 from .smime.sign import sign_data
 
-from keymint_package.xml.utils import pretty_xml, tidy_xml
 
 def _compatible_criteria(dds_criteria, criteria):
     partitions = criteria.find('partitions')
@@ -76,11 +76,13 @@ class DDSCriteriasHelper(CriteriasHelpter):
     def __init__(self):
         self.dds_namespaces_helper = DDSNamespaceHelper()
 
-    def _dds_criteria(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
+    def _dds_criteria(self, context, expression, expression_list,
+                      dds_criteria_kind, partitions, data_tags):
         dds_criteria = ElementTree.Element(self._dds_dds_criteria_kind_mapping[dds_criteria_kind])
 
         formater = getattr(self.dds_namespaces_helper, expression.tag)
-        dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions, data_tags, dds_criteria_kind)
+        dds_topics, dds_partitions, dds_data_tags = formater(expression, partitions,
+                                                             data_tags, dds_criteria_kind)
 
         if dds_topics is not None:
             dds_criteria.append(dds_topics)
@@ -90,11 +92,15 @@ class DDSCriteriasHelper(CriteriasHelpter):
             dds_criteria.append(dds_data_tags)
         return dds_criteria
 
-    def ros_topic(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
-        return self._dds_criteria(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
+    def ros_topic(self, context, expression, expression_list,
+                  dds_criteria_kind, partitions, data_tags):
+        return self._dds_criteria(context, expression, expression_list,
+                                  dds_criteria_kind, partitions, data_tags)
 
-    def ros_service(self, context, expression, expression_list, dds_criteria_kind, partitions, data_tags):
-        return self._dds_criteria(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
+    def ros_service(self, context, expression, expression_list,
+                    dds_criteria_kind, partitions, data_tags):
+        return self._dds_criteria(context, expression, expression_list,
+                                  dds_criteria_kind, partitions, data_tags)
 
     def _dds_criterias(self, context, criteria, dds_criteria_kind):
         dds_criterias = []
@@ -108,7 +114,8 @@ class DDSCriteriasHelper(CriteriasHelpter):
             for expression in list(expression_list):
                 if hasattr(self, expression.tag):
                     formater = getattr(self, expression.tag)
-                    dds_criteria = formater(context, expression, expression_list, dds_criteria_kind, partitions, data_tags)
+                    dds_criteria = formater(context, expression, expression_list,
+                                            dds_criteria_kind, partitions, data_tags)
                     dds_criterias.append(dds_criteria)
                 else:
                     dds_criteria = ElementTree.Element(dds_criteria_kind)

@@ -16,5 +16,6 @@
 class InvalidPermissionsXML(Exception):
     pass
 
+
 class InvalidGovernanceXML(Exception):
     pass

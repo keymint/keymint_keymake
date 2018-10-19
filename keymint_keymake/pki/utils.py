@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cryptography import hazmat, x509
+from cryptography import x509  # hazmat
 # from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import serialization  # hashes
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat
 # from cryptography.hazmat.primitives.asymmetric import rsa, dsa, ec
 
@@ -27,23 +27,23 @@ def _dump_cert(cert, encoding=None):
 
 
 def save_cert(cert, cert_path, encoding=None):
-    with open(cert_path, "wb") as f:
+    with open(cert_path, 'wb') as f:
         f.write(_dump_cert(cert=cert, encoding=encoding))
 
 
-def _dump_key(key, encoding=None, format=None, encryption_algorithm=None):
+def _dump_key(key, encoding=None, format=None, encryption_algorithm=None): # noqa
     if encoding is None:
         encoding = Encoding.PEM
     if format is None:
-        format = PrivateFormat.PKCS8
+        format = PrivateFormat.PKCS8 # noqa
     if encryption_algorithm is None:
         encryption_algorithm = serialization.NoEncryption()
     return key.private_bytes(encoding=encoding, format=format,
                              encryption_algorithm=encryption_algorithm)
 
 
-def save_key(key, key_path, encoding=None, format=None, encryption_algorithm=None):
-    with open(key_path, "wb") as f:
+def save_key(key, key_path, encoding=None, format=None, encryption_algorithm=None): # noqa
+    with open(key_path, 'wb') as f:
         f.write(_dump_key(key=key, encoding=encoding, format=format,
                           encryption_algorithm=encryption_algorithm))
 
@@ -75,6 +75,7 @@ def load_cert_data(cert_data, encoding=None, backend=None):
         cert = x509.load_der_x509_certificate(
             cert_data, backend=backend)
     return cert
+
 
 def load_key(key_path, password=None, encoding=None, backend=None):
     if encoding is None:

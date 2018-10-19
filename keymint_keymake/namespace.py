@@ -73,5 +73,4 @@ class DDSNamespaceHelper(NamespaceHelper):
         else:
             dds_data_tags = None
 
-
         return dds_topics, dds_partitions, dds_data_tags

@@ -16,12 +16,13 @@
 # https://github.com/pyca/cryptography/issues/1621
 
 import logging
-from M2Crypto import BIO, SMIME
 
-from cryptography import hazmat, x509
+# from cryptography import hazmat, x509
 from cryptography.hazmat.primitives.serialization import Encoding
 
 from keymint_keymake import pki
+
+from M2Crypto import BIO, SMIME
 
 
 class BadPKCS7Format(BaseException):
@@ -38,7 +39,7 @@ def _load_key(smime, key, cert, source_type):
     elif source_type is 'bio':
         smime.load_key_bio(keybio=key, certbio=cert)
     elif source_type is 'pkcs11':
-        smime.pkey = pkey
+        smime.pkey = key
         smime.x509 = cert
     else:
         msg = 'unknown source type: ' + source_type + \
@@ -79,8 +80,9 @@ def _sign_data(data_bytes, key, cert,
     out_bio = BIO.MemoryBuffer()
 
     data_bio = BIO.MemoryBuffer(data=data_bytes)
-    pkcs7, smime, flags = _sign_bio(data_bio=data_bio, key=key, cert=cert,
-                             source_type=source_type, source_format=source_format)
+    pkcs7, smime, flags = _sign_bio(
+        data_bio=data_bio, key=key, cert=cert,
+        source_type=source_type, source_format=source_format)
 
     data_bio = BIO.MemoryBuffer(data=data_bytes)
     smime.write(out_bio=out_bio, pkcs7=pkcs7, data_bio=data_bio, flags=flags)
@@ -107,6 +109,7 @@ def sign_data(data, key, cert, source_format='PEM'):
     signed_data = _sign_data(data_bytes=data_bytes, key=key_bio, cert=cert_bio,
                              source_type='bio', source_format=source_format)
     return signed_data
+
 
 def sign_file(file_path, key, cert, out_path, source_format='PEM'):
     with open(file_path, mode='rb') as data_fd:

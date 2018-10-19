@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 from xml.etree import cElementTree as ElementTree
 
-from copy import deepcopy
+from keymint_keymake.pki.certificate import get_ca
+
+from keymint_package.xml.utils import pretty_xml, tidy_xml
 
 import xmlschema
-
-from keymint_keymake.pki.certificate import get_ca
 
 from .exceptions import InvalidGovernanceXML
 from .namespace import DDSNamespaceHelper
 from .schemas import get_dds_schema_path
 from .smime.sign import sign_data
-
-from keymint_package.xml.utils import pretty_xml, tidy_xml
 
 
 class AccessRuleHelper:

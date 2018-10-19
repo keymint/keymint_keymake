@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import datetime
+# import os
+# import datetime
 
-from xml.etree import cElementTree as ElementTree
+# from xml.etree import cElementTree as ElementTree
 
 from copy import deepcopy
 
-import xmlschema
+# import xmlschema
 
-from .exceptions import InvalidPermissionsXML
-from .namespace import DDSNamespaceHelper
-from .schemas import get_dds_schema_path
-
-from keymint_keymake.pki.asymmetric import AsymmetricHelper
-from keymint_keymake.pki.certificate import CertificateHelper
+# from .exceptions import InvalidPermissionsXML
+# from .namespace import DDSNamespaceHelper
+# from .schemas import get_dds_schema_path
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+
+from keymint_keymake.pki.asymmetric import AsymmetricHelper
+from keymint_keymake.pki.certificate import CertificateHelper
 
 
 class IdentitiesHelper:

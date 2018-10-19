@@ -13,17 +13,19 @@
 # limitations under the License.
 
 import os
-import datetime
+# import datetime
 
 # from xml.etree import cElementTree as ElementTree
 
-from cryptography.hazmat.primitives import asymmetric
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import asymmetric
 from cryptography.hazmat.primitives import serialization
+
 
 def get_password(password_env):
     password = bytes(os.environ[password_env], 'utf-8')
     return password
+
 
 class AsymmetricHelper:
     """Help build asymmetric keys into artifacts."""
@@ -37,9 +39,9 @@ class AsymmetricHelper:
             encryption_algorithm = getattr(serialization, encryption_algorithm)(password)
 
         dds_key_bytes = dds_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=encryption_algorithm)
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=encryption_algorithm)
         return dds_key_bytes
 
     def rsa(self, context, asymmetric_type):
