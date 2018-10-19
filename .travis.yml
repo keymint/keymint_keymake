@@ -13,9 +13,8 @@ install:
 # Install runtime dependencies from PyPI
   - pip install attrdict
   - pip install cryptography
+  - pip install M2Crypto
   - pip install xmlschema
-# Install M2Crypto from git via python 3 branch for s/mime singing
-  - pip install git+https://gitlab.com/m2crypto/m2crypto.git@python3#egg=m2crypto
 # Install dependent keymint packages from git
   - pip install git+git://github.com/keymint/keymint_package.git@master#egg=keymint_package
   # Install test dependencies from PyPI
